@@ -21,12 +21,14 @@ function onChangeHandler(e) {
     fetchCountries(searchValue)
       .then(result => {
         if (result.length > 10) {
+          setTimeout(() => countryList.classList.remove('translate'), 200);
           Notiflix.Notify.info(
             'Too many matches found. Please enter a more specific name.'
           );
           return;
         }
         renderingHtml(result);
+        setTimeout(() => countryList.classList.add('translate'), 200);
       })
       .catch(err => {
         Notiflix.Notify.failure('Oops, there is no country with that name.');
