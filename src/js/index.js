@@ -5,30 +5,31 @@ import { fetchCountries } from './fetchCountries.js';
 
 const DEBOUNCE_DELAY = 300;
 
-const input = document.querySelector('#search-box');
-const countryList = document.querySelector('.country-list');
-const countryInfo = document.querySelector('.country-info');
+const refs = {
+  input: document.querySelector('#search-box'),
+  countryList: document.querySelector('.country-list'),
+  countryInfo: document.querySelector('.country-info'),
+};
+refs.input.addEventListener('input', debounce(onChangeHandler, DEBOUNCE_DELAY));
+refs.countryList.addEventListener('click', onClickLink);
 
-input.addEventListener('input', debounce(onChangeHandler, DEBOUNCE_DELAY));
-countryList.addEventListener('click', onClickLink);
-
-function onChangeHandler(e) {
-  const searchValue = e.target.value.trim();
-  countryInfo.innerHTML = '';
-  countryList.innerHTML = '';
+function onChangeHandler(evt) {
+  const searchValue = evt.target.value.trim();
+  refs.countryInfo.innerHTML = '';
+  refs.countryList.innerHTML = '';
 
   if (searchValue) {
     fetchCountries(searchValue)
       .then(result => {
         if (result.length > 10) {
-          setTimeout(() => countryList.classList.remove('translate'), 200);
+          setTimeout(() => refs.countryList.classList.remove('translate'), 250);
           Notiflix.Notify.info(
             'Too many matches found. Please enter a more specific name.'
           );
           return;
         }
         renderingHtml(result);
-        setTimeout(() => countryList.classList.add('translate'), 200);
+        setTimeout(() => refs.countryList.classList.add('translate'), 250);
       })
       .catch(err => {
         Notiflix.Notify.failure('Oops, there is no country with that name.');
@@ -39,18 +40,18 @@ function onChangeHandler(e) {
 
 function renderingHtml(countriesData) {
   if (countriesData.length <= 10 && countriesData.length >= 2) {
-    countryList.insertAdjacentHTML(
+    refs.countryList.insertAdjacentHTML(
       'afterbegin',
       createMarkupCountyList(countriesData)
     );
     return;
   }
   if (countriesData.length === 1) {
-    countryList.insertAdjacentHTML(
+    refs.countryList.insertAdjacentHTML(
       'afterbegin',
       createMarkupCountyList(countriesData, true)
     );
-    countryInfo.insertAdjacentHTML(
+    refs.countryInfo.insertAdjacentHTML(
       'afterbegin',
       createMarkupCountyInfo(countriesData)
     );
@@ -68,7 +69,7 @@ function createMarkupCountyList(countriesData, isSingle = false) {
       <a data-href="${name.official}" class="country-item__link" href="#"> 
       <img data-href="${name.official}" class='country-flag ${
         isSingle ? 'country-flag--single' : null
-      }' src='${flags.svg}' alt="${name.official}"'/> ${name.official}
+      }' src='${flags.svg}' alt="${name.common}"'/> ${name.official}
       </a>
       </li>`;
     })
@@ -84,8 +85,12 @@ function createMarkupCountyInfo(countriesData) {
 
 function onClickLink(evt) {
   evt.preventDefault();
+  console.log(evt.target.nodeName);
+  if (evt.target.nodeName === 'UL' || evt.target.nodeName === 'LI') {
+    return;
+  }
 
-  input.value = evt.target.dataset.href.trim();
+  refs.input.value = evt.target.dataset.href.trim();
   console.log(evt.target);
-  onChangeHandler({ target: input });
+  onChangeHandler({ target: refs.input });
 }
